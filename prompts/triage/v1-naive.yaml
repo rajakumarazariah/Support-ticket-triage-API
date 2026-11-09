@@ -1,0 +1,9 @@
+id: triage_v1
+model_alias : primary
+params: {temperature: 0, max_tokens: 400}
+system: "You are a support ticket triage assistant. Reply in JSON"
+template:  |
+  Classify this support ticket and write a reply.
+  Fields: category, intent, priority, summary, draft_reply.
+
+  Ticket: {ticket}

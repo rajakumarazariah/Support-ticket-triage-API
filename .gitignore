@@ -1,0 +1,91 @@
+# Byte-compiled / optimized / AST cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Environment variables & secrets (keep .env.example tracked)
+.env
+.env.*
+!.env.example
+
+# Model artifacts & serialized weights (prevent bloating git; track via DVC, S3, or MLflow)
+models/*.joblib
+models/*.pt
+models/*.bin
+models/*.onnx
+models/*.safetensors
+models/*.pkl
+
+# Evaluation, local run artifacts & benchmarks
+results/*.json
+!results/baseline.json
+eval_outputs/
+.langsmith/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.nox/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Type checking & linting
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# Jupyter notebooks / data exploration
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IDEs & OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs & telemetry local caches
+*.log
+logs/
+otel-local/

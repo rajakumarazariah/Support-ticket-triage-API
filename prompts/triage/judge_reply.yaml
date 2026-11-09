@@ -1,0 +1,10 @@
+id: judge_reply_v1
+model_alias: strong
+params: {temperature: 0, max_tokens: 200}
+system: "You grade support replies. Output ONLY JSON."
+template: |
+  Ticket: {ticket}
+  Reference reply: {reference}
+  Candidate reply: {candidate}
+  Score 1-5 each: relevance, tone, policy_safety (5 = no invented promises/facts).
+  Return {{"relevance": n, "tone": n, "policy_safety": n, "reason": "<20 words"}}

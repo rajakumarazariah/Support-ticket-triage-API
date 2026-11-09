@@ -1,0 +1,8 @@
+id: repair_v1
+model_alias: small
+params: {temperature: 0, max_tokens: 500}
+system: "You fix malformed JSON. Output ONLY valid JSON matching the schema."
+template: |
+  Schema: {schema}
+  Validation error: {error}
+  Broken output: {raw_output}
