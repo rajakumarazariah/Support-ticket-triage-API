@@ -21,6 +21,11 @@ Environment variables:
     MAX_RETRY_AFTER_S      longest Retry-After we are willing to wait (default 10)
     BREAKER_FAILURES       consecutive failed calls before the breaker opens (default 5)
     BREAKER_COOLDOWN_S     seconds before a half-open probe is allowed (default 30)
+
+    SYSTEM1_ENABLED        true/false: use the fast path at all (default true)
+    SYSTEM1_MODEL_PATH     joblib artifact from scripts/train_system1.py
+    SYSTEM1_TAU            override the confidence threshold stored in the artifact
+    SYSTEM1_MIN_SIM        minimum nearest-neighbour cosine similarity (default 0.80)
 """
 from __future__ import annotations
 
@@ -76,6 +81,46 @@ def _num_env(env: Mapping[str, str], name: str, default: T, cast: Callable[[str]
     return value
 
 
+def _bool_env(env: Mapping[str, str], name: str, default: bool) -> bool:
+    raw = env.get(name)
+    if raw is None or raw.strip() == "":
+        return default
+    value = raw.strip().lower()
+    if value in ("1", "true", "yes", "on"):
+        return True
+    if value in ("0", "false", "no", "off"):
+        return False
+    raise ValueError(f"{name} must be true or false, got {raw!r}")
+
+
+@dataclass(frozen=True)
+class RouterSettings:
+    """System 1 / System 2 routing settings."""
+
+    system1_enabled: bool = True
+    model_path: Path = REPO_ROOT / "models" / "system1_v1.joblib"
+    tau_override: float | None = None  # None -> use the tau saved in the model artifact
+    min_similarity: float = 0.80
+
+    @classmethod
+    def from_env(cls, env: Mapping[str, str]) -> "RouterSettings":
+        """Read routing settings from `env`."""
+        tau: float | None = None
+        if (env.get("SYSTEM1_TAU") or "").strip():
+            tau = _num_env(env, "SYSTEM1_TAU", 0.0, float)
+            if not 0.0 < tau <= 1.0:
+                raise ValueError(f"SYSTEM1_TAU must be in (0, 1], got {tau}")
+        min_sim = _num_env(env, "SYSTEM1_MIN_SIM", 0.80, float)
+        if min_sim > 1.0:
+            raise ValueError(f"SYSTEM1_MIN_SIM must be <= 1, got {min_sim}")
+        return cls(
+            system1_enabled=_bool_env(env, "SYSTEM1_ENABLED", True),
+            model_path=Path(env.get("SYSTEM1_MODEL_PATH") or REPO_ROOT / "models" / "system1_v1.joblib"),
+            tau_override=tau,
+            min_similarity=min_sim,
+        )
+
+
 @dataclass(frozen=True)
 class GatewaySettings:
     """LLM gateway settings: model ids, timeouts, retry policy, circuit breaker."""
@@ -122,6 +167,7 @@ class Settings:
     active_prompts: Mapping[str, str] = field(default_factory=lambda: dict(DEFAULT_ACTIVE_PROMPTS))
     prompt_canary: Mapping[str, Mapping[str, float]] = field(default_factory=dict)
     gateway: GatewaySettings = field(default_factory=GatewaySettings)
+    router: RouterSettings = field(default_factory=RouterSettings)
 
     @classmethod
     def from_env(
@@ -141,6 +187,7 @@ class Settings:
             active_prompts={**DEFAULT_ACTIVE_PROMPTS, **_json_env(env, "ACTIVE_PROMPTS")},
             prompt_canary=_json_env(env, "PROMPT_CANARY"),
             gateway=GatewaySettings.from_env(env),
+            router=RouterSettings.from_env(env),
         )
 
 
